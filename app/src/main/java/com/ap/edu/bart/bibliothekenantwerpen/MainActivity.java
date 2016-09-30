@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         mapView.setBuiltInZoomControls(true);
         mapView.setMultiTouchControls(true);
         mapView.getController().setZoom(18);
-
+        mapView.getController().setCenter(new GeoPoint(51.2244, 4.38566));
         mRequestQueue = Volley.newRequestQueue(this);
         setPreferences(true);
         if(true) {
