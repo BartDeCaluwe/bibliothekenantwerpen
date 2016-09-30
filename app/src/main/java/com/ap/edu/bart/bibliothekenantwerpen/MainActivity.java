@@ -3,10 +3,20 @@ package com.ap.edu.bart.bibliothekenantwerpen;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.preference.PreferenceManager;
+import android.graphics.drawable.Drawable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+
+//import org.osmdroid.DefaultResourceProxyImpl;
+import org.osmdroid.DefaultResourceProxyImpl;
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
+import org.osmdroid.views.*;
+import org.osmdroid.views.overlay.ItemizedIconOverlay;
+import org.osmdroid.views.overlay.OverlayItem;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -32,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private RequestQueue mRequestQueue;
     SQLiteHelper helper;
     ArrayList<Bibliotheek> bibliotheeks = new ArrayList<Bibliotheek>();
+    final ArrayList<OverlayItem> items = new ArrayList<OverlayItem>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
             // A JSONObject to post with the request. Null is allowed and indicates no parameters will be posted along with request.
             JSONObject obj = null;
             // haal alle parkeerzones op
-
             JsonObjectRequest jr = new JsonObjectRequest(Request.Method.GET, "http://datasets.antwerpen.be/v4/gis/bibliotheekoverzicht.json", obj, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
@@ -60,6 +70,32 @@ public class MainActivity extends AppCompatActivity {
                         setPreferences(true);
                         bibliotheeks = helper.getAllBibliotheken();
                         Log.d("com.ap.edu", "Zones saved to DB");
+                        for(int i = 0; i < bibliotheeks.size(); i++){
+
+                            Bibliotheek bib = bibliotheeks.get(i);
+                            double lat = Double.parseDouble(bib.getlat());
+                            double lng = Double.parseDouble(bib.getlng());
+                            GeoPoint g = new GeoPoint(lat, lng);
+
+                            OverlayItem myLocationOverlayItem = new OverlayItem("Here", "Current Position", g);
+                            Drawable myCurrentLocationMarker = ResourcesCompat.getDrawable(getResources(), R.drawable.marker, null);
+                            myLocationOverlayItem.setMarker(myCurrentLocationMarker);
+
+                            items.add(myLocationOverlayItem);
+                            DefaultResourceProxyImpl resourceProxy = new DefaultResourceProxyImpl(getApplicationContext());
+
+                            ItemizedIconOverlay<OverlayItem> currentLocationOverlay = new ItemizedIconOverlay<OverlayItem>(items,
+                                    new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                                        public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                                            return true;
+                                        }
+                                        public boolean onItemLongPress(final int index, final OverlayItem item) {
+                                            return true;
+                                        }
+                                    }, resourceProxy);
+                            mapView.getOverlays().add(currentLocationOverlay);
+                            mapView.invalidate();
+                        }
                     }
                     catch (JSONException e) {
                         Log.e("edu.ap.mapsaver", e.getMessage());
@@ -78,6 +114,27 @@ public class MainActivity extends AppCompatActivity {
             Log.d("edu.ap.mapsaver", "Zones retrieved from DB");
         }
 
+    }
+
+    private void addMarker(GeoPoint g) {
+        OverlayItem myLocationOverlayItem = new OverlayItem("Here", "Current Position", g);
+        Drawable myCurrentLocationMarker = ResourcesCompat.getDrawable(getResources(), R.drawable.marker, null);
+        myLocationOverlayItem.setMarker(myCurrentLocationMarker);
+
+        items.add(myLocationOverlayItem);
+        DefaultResourceProxyImpl resourceProxy = new DefaultResourceProxyImpl(getApplicationContext());
+
+        ItemizedIconOverlay<OverlayItem> currentLocationOverlay = new ItemizedIconOverlay<OverlayItem>(items,
+                new ItemizedIconOverlay.OnItemGestureListener<OverlayItem>() {
+                    public boolean onItemSingleTapUp(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                    public boolean onItemLongPress(final int index, final OverlayItem item) {
+                        return true;
+                    }
+                }, resourceProxy);
+        this.mapView.getOverlays().add(currentLocationOverlay);
+        this.mapView.invalidate();
     }
 
     private void setPreferences(boolean b) {
