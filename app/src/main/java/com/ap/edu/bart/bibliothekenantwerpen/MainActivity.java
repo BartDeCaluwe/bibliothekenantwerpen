@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
                         setPreferences(true);
                         bibliotheeks = helper.getAllBibliotheken();
                         Log.d("com.ap.edu", "Zones saved to DB");
-                        Log.d("edu.ap.mapsaver", "aeerar");
                     }
                     catch (JSONException e) {
                         Log.e("edu.ap.mapsaver", e.getMessage());

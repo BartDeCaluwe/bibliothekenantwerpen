@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class SQLiteHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "mapsaver.db";
+    private static final String DATABASE_NAME = "bib.db";
     private static final String TABLE_BIBLIOTHEKEN = "biblitheken";
     private static final int DATABASE_VERSION = 15;
 
@@ -24,7 +24,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_BIBLIOTHEKEN + "(_id INTEGER PRIMARY KEY, tariefkleur STRING, tariefzone STRING, geometry STRING)";
+        String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_BIBLIOTHEKEN + "(_id INTEGER PRIMARY KEY, lat STRING, lng STRING)";
         db.execSQL(CREATE_USERS_TABLE);
     }
 
@@ -42,8 +42,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("select * from " + TABLE_BIBLIOTHEKEN, null);
         if (cursor.moveToFirst()) {
             do {
-                String geometry = cursor.getString(3);
-                allBibliotheken.add(new Bibliotheek(geometry));
+                String lat = cursor.getString(1);
+                String lng = cursor.getString(2);
+                allBibliotheken.add(new Bibliotheek(lat, lng));
             } while (cursor.moveToNext());
         }
 
@@ -55,10 +56,12 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         for (int i = 0; i < allBibliotheken.length(); i++) {
             try {
                 JSONObject obj = (JSONObject) allBibliotheken.get(i);
-                String geometry = obj.getString("");
+                String lat = obj.getString("point_lat");
+                String lng = obj.getString("point_lng");
 
                 ContentValues values = new ContentValues();
-                values.put("geometry", geometry);
+                values.put("lat", lat);
+                values.put("lng", lng);
 
                 db.insert(TABLE_BIBLIOTHEKEN, null, values);
             }
